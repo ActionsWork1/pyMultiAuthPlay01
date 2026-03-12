@@ -1,14 +1,13 @@
-name: Pytest Playwright Tests2
+name: Pytest Playwright Tests
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   pull_request:
+
 
 permissions:
   contents: write
-  pages: write
-
 
 jobs:
   test:
@@ -16,113 +15,228 @@ jobs:
 
     steps:
 
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    # Checkout repository
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-      # Setup Python
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.14.x'
-          cache: 'pip'
+    # Setup Python
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.14.x'
+        cache: 'pip'
 
-      # Install dependencies
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install allure-pytest
+    # Install dependencies
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
 
-      # Cache Playwright browsers
-      - name: Cache Playwright Browsers
-        id: playwright-cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('requirements.txt') }}
+    # Cache Playwright browsers
+    - name: Cache Playwright browsers
+      id: playwright-cache
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/ms-playwright
+        key: ${{ runner.os }}-playwright-${{ hashFiles('requirements.txt') }}
 
-      # Install browsers if cache miss
-      - name: Install Playwright Browsers
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: playwright install chromium --with-deps
+    # Install browsers if cache miss
+    - name: Install Playwright browsers
+      if: steps.playwright-cache.outputs.cache-hit != 'true'
+      run: playwright install chromium --with-deps
 
-      # Run tests
-      # pytest.ini should contain:
-      # addopts = --alluredir=allure-results
-      - name: Execute Tests
-#        run: pytest
-        run: pytest --alluredir=allure-results
-        continue-on-error: true
+    # Run tests and generate allure results
+    - name: Run tests
+      run: pytest --alluredir=allure-results
+      continue-on-error: true
 
-      # Debug results
-      - name: Debug Allure Results
-        if: always()
-        run: |
-          echo "Listing allure-results folder"
-          ls -la allure-results || true
+    # Debug results
+    - name: Debug allure results
+      if: always()
+      run: |
+        echo "Allure results:"
+        ls -la allure-results || true
 
-      # Checkout gh-pages branch to load previous history
-      - name: Load Allure History
-        if: always()
-        continue-on-error: true
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ github.repository }}
-          ref: gh-pages
-          path: gh-pages
-          fetch-depth: 1
+    # Checkout gh-pages branch for history
+    - name: Load previous Allure history
+      if: always()
+      continue-on-error: true
+      uses: actions/checkout@v4
+      with:
+        repository: ${{ github.repository }}
+        ref: gh-pages
+        path: gh-pages
+
+    # Copy previous history if exists
+    - name: Copy history
+      if: always()
+      run: |
+        mkdir -p allure-results/history
+        if [ -d "gh-pages/history" ]; then
+          cp -r gh-pages/history/* allure-results/history/
+        fi
+
+    # Build Allure report
+    - name: Build Allure report
+      if: always()
+      uses: simple-elf/allure-report-action@master
+      with:
+        allure_results: allure-results
+        allure_history: allure-history
+        keep_reports: 20
+
+    # Debug report folder
+    - name: Debug report
+      if: always()
+      run: |
+        echo "Allure history:"
+        ls -la allure-history || true
+
+    # Deploy to GitHub Pages
+    - name: Deploy Allure report
+      if: github.ref == 'refs/heads/main'
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_branch: gh-pages
+        publish_dir: allure-history
+        force_orphan: true
+        exclude_assets: '.git'
+
+    # Add report link to workflow summary
+    - name: Publish report link
+      if: always()
+      run: |
+        echo "## Allure Test Report" >> $GITHUB_STEP_SUMMARY
+        echo "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/" >> $GITHUB_STEP_SUMMARY
+
+
+#name: Pytest Playwright Tests2
+#
+#on:
+#  push:
+#    branches: [main]
+#  pull_request:
+#
+#permissions:
+#  contents: write
+#  pages: write
+#
+#
+#jobs:
+#  test:
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#
+#      - name: Checkout repository
+#        uses: actions/checkout@v4
+#
+#      # Setup Python
+#      - name: Set up Python
+#        uses: actions/setup-python@v5
 #        with:
+#          python-version: '3.14.x'
+#          cache: 'pip'
+#
+#      # Install dependencies
+#      - name: Install dependencies
+#        run: |
+#          python -m pip install --upgrade pip
+#          pip install -r requirements.txt
+#          pip install allure-pytest
+#
+#      # Cache Playwright browsers
+#      - name: Cache Playwright Browsers
+#        id: playwright-cache
+#        uses: actions/cache@v4
+#        with:
+#          path: ~/.cache/ms-playwright
+#          key: ${{ runner.os }}-playwright-${{ hashFiles('requirements.txt') }}
+#
+#      # Install browsers if cache miss
+#      - name: Install Playwright Browsers
+#        if: steps.playwright-cache.outputs.cache-hit != 'true'
+#        run: playwright install chromium --with-deps
+#
+#      # Run tests
+#      # pytest.ini should contain:
+#      # addopts = --alluredir=allure-results
+#      - name: Execute Tests
+##        run: pytest
+#        run: pytest --alluredir=allure-results
+#        continue-on-error: true
+#
+#      # Debug results
+#      - name: Debug Allure Results
+#        if: always()
+#        run: |
+#          echo "Listing allure-results folder"
+#          ls -la allure-results || true
+#
+#      # Checkout gh-pages branch to load previous history
+#      - name: Load Allure History
+#        if: always()
+#        continue-on-error: true
+#        uses: actions/checkout@v4
+#        with:
+#          repository: ${{ github.repository }}
 #          ref: gh-pages
 #          path: gh-pages
-#          fetch-depth: 0
-
-      # Copy previous history
-      - name: Copy Allure History
-        if: always()
-        run: |
-          mkdir -p allure-results/history
-          if [ -d "gh-pages/history" ]; then
-            cp -r gh-pages/history/ allure-results/
-          else
-            echo "No previous Allure history found"
-          fi
-
-      # Build new Allure report
-      - name: Build Allure Report
-        if: always()
-        uses: simple-elf/allure-report-action@master
-        with:
-          allure_results: allure-results
-          allure_history: allure-history
-          keep_reports: 20
-
-      # Debug generated report
-      - name: Debug Allure Output
-        if: always()
-        run: |
-          echo "Listing allure-history folder"
-          ls -la allure-history || true
-
-#        # IMPORTANT FIX
-#      - name: Remove nested git repo
+#          fetch-depth: 1
+##        with:
+##          ref: gh-pages
+##          path: gh-pages
+##          fetch-depth: 0
+#
+#      # Copy previous history
+#      - name: Copy Allure History
+#        if: always()
 #        run: |
-#           rm -rf allure-history/.git
-
-      # Deploy report to GitHub Pages
-      - name: Deploy Allure Report to GitHub Pages
-        if: always() #github.ref == 'refs/heads/main'
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: gh-pages
-          publish_dir: allure-history
-          exclude_assets: '.git'
-          force_orphan: true
-
-      # Post report link in workflow summary1
-      - name: Post Link to Allure Report
-        if: always()
-        run: |
-          echo "## Allure Test Report" >> $GITHUB_STEP_SUMMARY
-          echo "View the latest report here:" >> $GITHUB_STEP_SUMMARY
-          echo "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/" >> $GITHUB_STEP_SUMMARY
+#          mkdir -p allure-results/history
+#          if [ -d "gh-pages/history" ]; then
+#            cp -r gh-pages/history/ allure-results/
+#          else
+#            echo "No previous Allure history found"
+#          fi
+#
+#      # Build new Allure report
+#      - name: Build Allure Report
+#        if: always()
+#        uses: simple-elf/allure-report-action@master
+#        with:
+#          allure_results: allure-results
+#          allure_history: allure-history
+#          keep_reports: 20
+#
+#      # Debug generated report
+#      - name: Debug Allure Output
+#        if: always()
+#        run: |
+#          echo "Listing allure-history folder"
+#          ls -la allure-history || true
+#
+##        # IMPORTANT FIX
+##      - name: Remove nested git repo
+##        run: |
+##           rm -rf allure-history/.git
+#
+#      # Deploy report to GitHub Pages
+#      - name: Deploy Allure Report to GitHub Pages
+#        if: always() #github.ref == 'refs/heads/main'
+#        uses: peaceiris/actions-gh-pages@v4
+#        with:
+#          github_token: ${{ secrets.GITHUB_TOKEN }}
+#          publish_branch: gh-pages
+#          publish_dir: allure-history
+#          exclude_assets: '.git'
+#          force_orphan: true
+#
+#      # Post report link in workflow summary1
+#      - name: Post Link to Allure Report
+#        if: always()
+#        run: |
+#          echo "## Allure Test Report" >> $GITHUB_STEP_SUMMARY
+#          echo "View the latest report here:" >> $GITHUB_STEP_SUMMARY
+#          echo "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/" >> $GITHUB_STEP_SUMMARY
