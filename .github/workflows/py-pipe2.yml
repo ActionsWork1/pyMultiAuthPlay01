@@ -98,10 +98,10 @@ jobs:
           echo "Listing allure-history folder"
           ls -la allure-history || true
 
-        # IMPORTANT FIX
-      - name: Remove nested git repo
-        run: |
-           rm -rf allure-history/.git
+#        # IMPORTANT FIX
+#      - name: Remove nested git repo
+#        run: |
+#           rm -rf allure-history/.git
 
       # Deploy report to GitHub Pages
       - name: Deploy Allure Report to GitHub Pages
@@ -111,6 +111,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
           publish_dir: allure-history
+          exclude_assets: '.git'
           force_orphan: true
 
       # Post report link in workflow summary1
