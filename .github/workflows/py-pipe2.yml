@@ -3,8 +3,6 @@ name: Pytest Playwright Tests2
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 permissions:
   contents: write
@@ -99,8 +97,6 @@ jobs:
 
       # Deploy report to GitHub Pages
       - name: Deploy Allure Report to GitHub Pages
-        #if: always()
-
         if: github.ref == 'refs/heads/main'
         uses: peaceiris/actions-gh-pages@v4
         with:
