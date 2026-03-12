@@ -67,9 +67,14 @@ jobs:
         continue-on-error: true
         uses: actions/checkout@v4
         with:
+          repository: ${{ github.repository }}
           ref: gh-pages
           path: gh-pages
-          fetch-depth: 0
+          fetch-depth: 1
+#        with:
+#          ref: gh-pages
+#          path: gh-pages
+#          fetch-depth: 0
 
       # Copy previous history
       - name: Copy Allure History
