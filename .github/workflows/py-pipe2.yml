@@ -2,12 +2,12 @@ name: Pytest Playwright Tests2
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
 
 permissions:
   contents: write
   pages: write
-#  id-token: write
+
 
 jobs:
   test:
@@ -105,7 +105,7 @@ jobs:
           publish_dir: allure-history
           force_orphan: true
 
-      # Post report link in workflow summary
+      # Post report link in workflow summary1
       - name: Post Link to Allure Report
         if: always()
         run: |
