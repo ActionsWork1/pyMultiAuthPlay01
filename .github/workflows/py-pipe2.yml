@@ -76,7 +76,7 @@ jobs:
         run: |
           mkdir -p allure-results/history
           if [ -d "gh-pages/history" ]; then
-            cp -r gh-pages/history/* allure-results/history/
+            cp -r gh-pages/history/ allure-results/
           else
             echo "No previous Allure history found"
           fi
@@ -99,7 +99,9 @@ jobs:
 
       # Deploy report to GitHub Pages
       - name: Deploy Allure Report to GitHub Pages
-        if: always()
+        #if: always()
+
+        if: github.ref == 'refs/heads/main'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
