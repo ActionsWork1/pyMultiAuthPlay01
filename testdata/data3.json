@@ -1,0 +1,13 @@
+{
+   "testdata":[
+	{
+	   "fname": "fake.first_name",
+	   "lname": "fake.last_name",
+	   "address":{
+	       "street": "fake.street_address",
+	       "building": "fake.building_number",
+	       "city": "New York",
+	       "zip": "fake.postcode"
+	     }
+    }]
+}

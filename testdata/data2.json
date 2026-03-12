@@ -1,0 +1,23 @@
+{
+   "testdata":[
+	{
+	   "fname": "fname1",
+	   "lname": "lname1",
+	   "address":{
+	       "street": "fdsf 223",
+	       "building": "Building 1",
+	       "city": "New York",
+	       "zip": "23232"
+	     }
+	},
+	{
+	   "fname": "fname2",
+	   "lname": "lname2",
+	   "address":{
+	       "street": "fdsf 223",
+	       "building": "Building 2",
+	       "city": "New York",
+	       "zip": "23232"
+	   }
+    }]
+}
