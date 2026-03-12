@@ -1,0 +1,2 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"This test attempts to log into the website using a login as Admin","15734","Test Authentication","authworks01.tests","2026-03-12","passed","2026-03-12","","test_admin","",""
