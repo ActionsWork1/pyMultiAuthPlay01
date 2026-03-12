@@ -98,6 +98,11 @@ jobs:
           echo "Listing allure-history folder"
           ls -la allure-history || true
 
+        # IMPORTANT FIX
+      - name: Remove nested git repo
+        run: |
+           rm -rf allure-history/.git
+
       # Deploy report to GitHub Pages
       - name: Deploy Allure Report to GitHub Pages
         if: always() #github.ref == 'refs/heads/main'
